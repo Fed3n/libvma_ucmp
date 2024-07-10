@@ -1030,9 +1030,12 @@ void tcp_pcb_init (struct tcp_pcb* pcb, u8_t prio)
 	UPDATE_PCB_BY_MSS(pcb, snd_mss);
 	pcb->max_unsent_len = pcb->max_tcp_snd_queuelen;
 	pcb->rto = 3000 / slow_tmr_interval;
+    pcb->min_rto = 0;
 	pcb->sa = 0;
 	pcb->sv = 3000 / slow_tmr_interval;
 	pcb->rtime = -1;
+    pcb->dupack_thresh = 3;
+    pcb->total_tx_data = 0;
 #if TCP_CC_ALGO_MOD
 	switch (lwip_cc_algo_module) {
 	case CC_MOD_CUBIC:

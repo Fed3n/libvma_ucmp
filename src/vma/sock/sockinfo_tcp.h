@@ -46,6 +46,8 @@
 #include "vma/lwip/opt.h"
 #include "vma/lwip/tcp_impl.h"
 
+#include <algorithm>
+
 #include "sockinfo.h"
 
 /**
@@ -229,6 +231,12 @@ public:
 	}
 
 	void handle_timer_expired(void* user_data);
+
+    //flow aging
+    vector<uint64_t> age_bucket_thresholds;
+    uint64_t age_bucket_idx;
+    void update_flow_age();
+
 
 	list_node<sockinfo_tcp, sockinfo_tcp::accepted_conns_node_offset> accepted_conns_node;
 

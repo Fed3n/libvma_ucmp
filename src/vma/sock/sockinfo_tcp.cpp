@@ -292,6 +292,24 @@ sockinfo_tcp::sockinfo_tcp(int fd):
 	if (m_tcp_seg_list) m_tcp_seg_count += TCP_SEG_COMPENSATION;
 	m_tx_consecutive_eagain_count = 0;
 
+    //flow aging
+    age_bucket_thresholds = {
+    (uint64_t)1.25E6, 
+    (uint64_t)2.5E6,
+    (uint64_t)5E6,
+    (uint64_t)7.5E6,
+    (uint64_t)10E6,
+    (uint64_t)10E9
+    };
+    /*
+    age_bucket_thresholds = {
+    (uint64_t)1E3, 
+    (uint64_t)1E4,
+    (uint64_t)1E5
+    };
+    */
+    age_bucket_idx = 0;
+
 	// Disable Nagle algorithm if VMA_TCP_NODELAY flag was set.
 	if (safe_mce_sys().tcp_nodelay) {
 		try {
@@ -311,6 +329,14 @@ sockinfo_tcp::sockinfo_tcp(int fd):
 			// We should not be here
 		}
 	}
+    if (safe_mce_sys().min_rto > 0) {
+        cout << "Changing min_rto to " << safe_mce_sys().min_rto << "msec\n";
+        m_pcb.min_rto = safe_mce_sys().min_rto; 
+    }
+    if (safe_mce_sys().dupack_thresh != 3) {
+        cout << "Changing dupack_thresh to " << safe_mce_sys().dupack_thresh << "\n";
+        m_pcb.min_rto = safe_mce_sys().dupack_thresh; 
+    }
 
 	si_tcp_logdbg("TCP PCB FLAGS: 0x%x", m_pcb.flags);
 	g_p_agent->register_cb((agent_cb_t)&sockinfo_tcp::put_agent_msg, (void *)this);
@@ -993,6 +1019,8 @@ err_t sockinfo_tcp::ip_output(struct pbuf *p, void* v_p_conn, uint16_t flags)
 	vma_send_attr attr = {(vma_wr_tx_packet_attr)0, 0};
 	int count = 0;
 
+    p_si_tcp->update_flow_age();
+
 	/* maximum number of sge can not exceed this value */
 	while (p && (count < max_count)) {
 		lwip_iovec[count].iovec.iov_base = p->payload;
@@ -1076,6 +1104,8 @@ err_t sockinfo_tcp::ip_output(struct pbuf *p, void* v_p_conn, int is_rexmit, uin
 	sockinfo_tcp *p_si_tcp = (sockinfo_tcp *)(((struct tcp_pcb*)v_p_conn)->my_container);
 	dst_entry *p_dst = p_si_tcp->m_p_connected_dst_entry;
 	int count = 1;
+
+    p_si_tcp->update_flow_age();
 
 	if (likely(!p->next)) { // We should hit this case 99% of cases
 		tcp_iovec_temp.iovec.iov_base = p->payload;
@@ -4839,3 +4869,21 @@ void sockinfo_tcp::update_header_field(data_updater *updater)
 
 	unlock_tcp_con();
 }
+
+void sockinfo_tcp::update_flow_age() {
+    //no need to update flow age
+    if(m_pcb.total_tx_data < age_bucket_thresholds[age_bucket_idx]
+        || age_bucket_idx+1 >= age_bucket_thresholds.size()) {
+        return;
+    }
+    //update to next bucket
+    age_bucket_idx++;
+    int val = age_bucket_idx << 2;
+    val |= m_pcb.tos & INET_ECN_MASK;
+    m_pcb.tos = val;
+    header_tos_updater du(m_pcb.tos);
+    update_header_field(&du);
+}
+
+
+

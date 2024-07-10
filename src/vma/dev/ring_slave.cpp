@@ -772,9 +772,11 @@ bool ring_slave::rx_process_buffer(mem_buf_desc_t* p_rx_wc_buf_desc, void* pv_fd
 #endif
 	}
 
+/*
 	if (p_rx_wc_buf_desc->rx.is_sw_csum_need && compute_ip_checksum((unsigned short*)p_ip_h, p_ip_h->ihl * 2)) {
 		return false; // false ip checksum
 	}
+*/
 
 //We want to enable loopback between processes for IB
 #if 0
@@ -802,9 +804,11 @@ bool ring_slave::rx_process_buffer(mem_buf_desc_t* p_rx_wc_buf_desc, void* pv_fd
 		p_rx_wc_buf_desc->rx.frag.iov_base = (uint8_t*)p_udp_h + sizeof(struct udphdr);
 		p_rx_wc_buf_desc->rx.frag.iov_len  = ip_tot_len - ip_hdr_len - sizeof(struct udphdr);
 
+/*
 		if (p_rx_wc_buf_desc->rx.is_sw_csum_need && p_udp_h->check && compute_udp_checksum_rx(p_ip_h, p_udp_h, p_rx_wc_buf_desc)) {
 			return false; // false udp checksum
 		}
+*/
 
 		size_t sz_payload = ntohs(p_udp_h->len) - sizeof(struct udphdr);
 		ring_logfunc("Rx udp datagram info: src_port=%d, dst_port=%d, payload_sz=%d, csum=%#x",

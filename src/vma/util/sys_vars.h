@@ -400,6 +400,8 @@ public:
 	alloc_mode_t	mem_alloc_type;
 	bool		handle_fork;
 	bool		close_on_dup2;
+    uint16_t    min_rto; //FD set minimum RTO value for TCP
+    uint16_t    dupack_thresh; //FD set duplicate ack threshold for TCP
 	uint32_t 	mtu;     /* effective MTU. If mtu==0 then auto calculate the MTU */
 	uint32_t	lwip_cc_algo_mod;
 	uint32_t 	lwip_mss;
@@ -531,6 +533,8 @@ extern mce_sys_var & safe_mce_sys();
 #define SYS_VAR_TCP_TIMESTAMP_OPTION			"VMA_TCP_TIMESTAMP_OPTION"
 #define SYS_VAR_TCP_NODELAY				"VMA_TCP_NODELAY"
 #define SYS_VAR_TCP_QUICKACK				"VMA_TCP_QUICKACK"
+#define SYS_VAR_TCP_MINRTO				"VMA_TCP_MINRTO"
+#define SYS_VAR_TCP_DUPACKTHRESH				"VMA_TCP_DUPACKTHRESH"
 #define SYS_VAR_VMA_EXCEPTION_HANDLING			(vma_exception_handling::getSysVar())
 #define SYS_VAR_AVOID_SYS_CALLS_ON_TCP_FD		"VMA_AVOID_SYS_CALLS_ON_TCP_FD"
 #define SYS_VAR_ALLOW_PRIVILEGED_SOCK_OPT		"VMA_ALLOW_PRIVILEGED_SOCK_OPT"

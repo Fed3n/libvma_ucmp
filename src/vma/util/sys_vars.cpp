@@ -609,6 +609,8 @@ void mce_sys_var::get_env_params()
 	handle_fork		= MCE_DEFAULT_FORK_SUPPORT;
 	handle_bf		= MCE_DEFAULT_BF_FLAG;
 	close_on_dup2		= MCE_DEFAULT_CLOSE_ON_DUP2;
+    min_rto         = 0;
+    dupack_thresh   = 3;
 	mtu			= MCE_DEFAULT_MTU;
 	lwip_mss		= MCE_DEFAULT_MSS;
 	lwip_cc_algo_mod	= MCE_DEFAULT_LWIP_CC_ALGO_MOD;
@@ -1142,6 +1144,12 @@ void mce_sys_var::get_env_params()
 
 	if ((env_ptr = getenv(SYS_VAR_TCP_QUICKACK)) != NULL) {
 		tcp_quickack = atoi(env_ptr) ? true : false;
+	}
+	if ((env_ptr = getenv(SYS_VAR_TCP_MINRTO)) != NULL) {
+		min_rto = (uint16_t)atoi(env_ptr);
+	}
+	if ((env_ptr = getenv(SYS_VAR_TCP_DUPACKTHRESH)) != NULL) {
+		dupack_thresh = (uint16_t)atoi(env_ptr);
 	}
 
 	// TODO: this should be replaced by calling "exception_handling.init()" that will be called from init()

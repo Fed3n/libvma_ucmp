@@ -961,6 +961,7 @@ tcp_receive(struct tcp_pcb *pcb, tcp_in_data* in_data)
      * If it only passes 1, should reset dupack counter
      *
      */
+     //FD changed 3 to be arbitrary dupack threshold
 
     /* Clause 1 */
     if (TCP_SEQ_LEQ(in_data->ackno, pcb->lastack)) {
@@ -976,7 +977,7 @@ tcp_receive(struct tcp_pcb *pcb, tcp_in_data* in_data)
               found_dupack = 1;
               if ((u8_t)(pcb->dupacks + 1) > pcb->dupacks)
                 ++pcb->dupacks;
-              if (pcb->dupacks > 3) {
+              if (pcb->dupacks > pcb->dupack_thresh) {
 #if TCP_CC_ALGO_MOD
         	cc_ack_received(pcb, CC_DUPACK);
 #else
@@ -986,7 +987,7 @@ tcp_receive(struct tcp_pcb *pcb, tcp_in_data* in_data)
         	  pcb->cwnd += pcb->mss;
         	}
 #endif //TCP_CC_ALGO_MOD
-              } else if (pcb->dupacks == 3) {
+              } else if (pcb->dupacks == pcb->dupack_thresh) {
                 /* Do fast retransmit */
                 tcp_rexmit_fast(pcb);
 #if TCP_CC_ALGO_MOD
@@ -1023,6 +1024,9 @@ tcp_receive(struct tcp_pcb *pcb, tcp_in_data* in_data)
 
       /* Reset the retransmission time-out. */
       pcb->rto = (pcb->sa >> 3) + pcb->sv;
+      if(pcb->rto < pcb->min_rto) {
+        pcb->rto = pcb->min_rto;
+      }
 
       /* Update the send buffer space. Diff between the two can never exceed 64K? */
       pcb->acked = (u32_t)(in_data->ackno - pcb->lastack);
@@ -1184,6 +1188,9 @@ tcp_receive(struct tcp_pcb *pcb, tcp_in_data* in_data)
       m = m - (pcb->sv >> 2);
       pcb->sv += m;
       pcb->rto = (pcb->sa >> 3) + pcb->sv;
+      if(pcb->rto < pcb->min_rto) {
+        pcb->rto = pcb->min_rto;
+      }
 
       LWIP_DEBUGF(TCP_RTO_DEBUG, ("tcp_receive: RTO %"U16_F" (%"U16_F" milliseconds)\n",
                                   pcb->rto, pcb->rto * slow_tmr_interval));

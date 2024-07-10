@@ -1615,6 +1615,7 @@ tcp_output(struct tcp_pcb *pcb)
 
        tcp_output_segment(seg, pcb);
        snd_nxt = seg->seqno + TCP_TCPLEN(seg);
+       pcb->total_tx_data += TCP_TCPLEN(seg);
        if (TCP_SEQ_LT(pcb->snd_nxt, snd_nxt) && !LWIP_IS_DUMMY_SEGMENT(seg)) {
          pcb->snd_nxt = snd_nxt;
        }

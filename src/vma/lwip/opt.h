@@ -37,6 +37,7 @@
  */
 #ifndef __LWIP_OPT_H__
 #define __LWIP_OPT_H__
+#include <stdint.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -870,6 +871,8 @@ typedef unsigned   short   u16_t;
 typedef signed     short   s16_t;
 typedef unsigned   int     u32_t;
 typedef signed     int     s32_t;
+typedef uint64_t           u64_t;
+typedef int64_t            s64_t;
 
 typedef unsigned long mem_ptr_t;
 

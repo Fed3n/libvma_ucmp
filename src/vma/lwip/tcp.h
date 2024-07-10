@@ -304,6 +304,9 @@ struct tcp_pcb {
   u32_t rcv_nxt;   /* next seqno expected */
   u32_t rcv_ann_right_edge; /* announced right edge of window */
 
+  /* Track flow size */
+  u64_t total_tx_data;
+
   /* Timers */
   u8_t tcp_timer; /* Timer counter to handle calling slow-timer from tcp_tmr() */
   u32_t tmr;
@@ -324,11 +327,13 @@ struct tcp_pcb {
   s16_t sa, sv; /* @todo document this */
 
   s16_t rto;    /* retransmission time-out */
+  s16_t min_rto; //FD minimum RTO value
   u8_t nrtx;    /* number of retransmissions */
 
   /* fast retransmit/recovery */
   u32_t lastack; /* Highest acknowledged seqno. */
   u8_t dupacks;
+  u16_t dupack_thresh; //duplicate ack threshold (default: 3)
   
   /* congestion avoidance/control variables */
 #if TCP_CC_ALGO_MOD
